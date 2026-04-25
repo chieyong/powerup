@@ -7,10 +7,11 @@ export default function RewardManagerPage() {
   const { reward, updateReward, habits } = useApp();
   const [progress, setProgress] = useState(reward.progressPercent);
   const [weeksCompleted, setWeeksCompleted] = useState(reward.readinessWeeksCompleted);
+  const [targetWeeks, setTargetWeeks] = useState(reward.targetWeeks);
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    updateReward({ progressPercent: progress, readinessWeeksCompleted: weeksCompleted });
+    updateReward({ progressPercent: progress, readinessWeeksCompleted: Math.min(weeksCompleted, targetWeeks), targetWeeks });
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -68,14 +69,35 @@ export default function RewardManagerPage() {
 
         <div style={styles.sliderGroup}>
           <label style={styles.sliderLabel}>
-            Goede weken: <strong>{weeksCompleted} van {reward.targetWeeks}</strong>
+            Doelperiode: <strong>{targetWeeks} weken</strong>
+          </label>
+          <input
+            type="range"
+            min={4}
+            max={16}
+            step={1}
+            value={targetWeeks}
+            onChange={e => setTargetWeeks(Number(e.target.value))}
+            style={styles.slider}
+          />
+          <div style={styles.sliderMarks}>
+            <span>4 wk</span>
+            <span>8 wk</span>
+            <span>12 wk</span>
+            <span>16 wk</span>
+          </div>
+        </div>
+
+        <div style={styles.sliderGroup}>
+          <label style={styles.sliderLabel}>
+            Goede weken: <strong>{Math.min(weeksCompleted, targetWeeks)} van {targetWeeks}</strong>
           </label>
           <input
             type="range"
             min={0}
-            max={reward.targetWeeks}
+            max={targetWeeks}
             step={1}
-            value={weeksCompleted}
+            value={Math.min(weeksCompleted, targetWeeks)}
             onChange={e => setWeeksCompleted(Number(e.target.value))}
             style={styles.slider}
           />

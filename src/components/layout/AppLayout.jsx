@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
 const childNav = [
@@ -15,6 +15,7 @@ const parentNav = [
 
 export default function AppLayout() {
   const { mode, setMode, child } = useApp();
+  const navigate = useNavigate();
   const nav = mode === 'child' ? childNav : parentNav;
 
   return (
@@ -27,7 +28,11 @@ export default function AppLayout() {
 
           <button
             style={styles.modeToggle}
-            onClick={() => setMode(mode === 'child' ? 'parent' : 'child')}
+            onClick={() => {
+              const next = mode === 'child' ? 'parent' : 'child';
+              setMode(next);
+              navigate(next === 'child' ? '/' : '/ouder');
+            }}
             aria-label={mode === 'child' ? 'Naar oudermodus' : 'Naar kindmodus'}
           >
             <span style={styles.modeToggleText}>
