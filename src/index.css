@@ -1,0 +1,161 @@
+/* PowerUp — Tetris Design System */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=JetBrains+Mono:wght@400;500;700&family=Nunito:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* ── Tetris Color Tokens ─────────────────────────────────────────────────── */
+  /* Source: design.md "Tetris" — high-contrast, playful, premium              */
+
+  --color-dark:         #1C202B;   /* primary  — dark header/nav               */
+  --color-purple:       #7107E7;   /* secondary — main action color            */
+  --color-purple-soft:  rgba(113, 7, 231, 0.12);
+  --color-purple-dark:  #5505B8;
+  --color-purple-glow:  rgba(113, 7, 231, 0.30);
+
+  --color-green:        #16A34A;   /* success                                   */
+  --color-green-soft:   #DCFCE7;
+  --color-amber:        #D97706;   /* warning                                   */
+  --color-amber-soft:   #FEF3C7;
+  --color-danger:       #DC2626;   /* danger (niet gebruikt als straf)          */
+
+  --color-bg:           #DFE7FF;   /* surface — licht blauw-paars achtergrond  */
+  --color-bg-card:      #FFFFFF;
+  --color-bg-subtle:    #EEF1FF;
+  --color-bg-dark:      #1C202B;   /* zelfde als --color-dark                  */
+
+  --color-text-primary:   #1C398E; /* text token                               */
+  --color-text-secondary: #3D52A0;
+  --color-text-muted:     #6B7AC4;
+  --color-text-white:     #FFFFFF;
+  --color-text-on-dark:   #DFE7FF; /* tekst op donkere achtergrond             */
+
+  --color-border:         rgba(28, 57, 142, 0.15);
+  --color-border-dark:    rgba(223, 231, 255, 0.12);
+
+  /* Semantische aliassen — behoud van bestaande namen in componenten */
+  --color-primary:      var(--color-purple);
+  --color-primary-soft: var(--color-purple-soft);
+  --color-primary-dark: var(--color-purple-dark);
+
+  --color-teal:         #3BBFB0;
+  --color-teal-soft:    #E2F7F5;
+  --color-coral:        #E8795A;
+  --color-coral-soft:   #FDE9E3;
+
+  --color-done:    var(--color-green);
+  --color-help:    var(--color-amber);
+  --color-not-yet: #6B7AC4;
+
+  /* ── Tetris Typography ───────────────────────────────────────────────────── */
+  /* Bangers voor display/titels, JetBrains Mono voor labels, Nunito voor body */
+
+  --font-display: 'Bangers', cursive;           /* h1, h2, grote UI-tekst      */
+  --font-mono:    'JetBrains Mono', monospace;  /* labels, badges, caps        */
+  --font-body:    'Nunito', system-ui, sans-serif; /* body, hints, paragrafen  */
+  --font-family:  var(--font-body);             /* fallback alias              */
+
+  --font-size-xs:   0.75rem;   /* 12px */
+  --font-size-sm:   0.875rem;  /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-md:   1.125rem;  /* 18px */
+  --font-size-lg:   1.375rem;  /* 22px */
+  --font-size-xl:   1.75rem;   /* 28px */
+  --font-size-2xl:  2.25rem;   /* 36px — Bangers display */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 600;
+  --font-weight-bold:   700;
+  --font-weight-black:  800;
+
+  /* Bangers heeft maar één weight, maar de variabele blijft voor consistentie */
+  --display-letter-spacing: 0.03em;
+
+  /* ── Tetris Spacing (compact density mode) ───────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  10px;
+  --space-4:  12px;
+  --space-5:  16px;
+  --space-6:  20px;
+  --space-8:  28px;
+  --space-10: 36px;
+  --space-12: 48px;
+
+  /* ── Tetris Border Radius (blocky, niet rond) ────────────────────────────── */
+  /* Tetris spec: sm=4px, md=8px — scherpe, spel-achtige vormen               */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   8px;   /* cards: scherper dan eerder (was 20px)              */
+  --radius-xl:   12px;  /* reward bar, modals                                  */
+  --radius-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 4px rgba(28, 57, 142, 0.10);
+  --shadow-md: 0 4px 16px rgba(28, 57, 142, 0.12);
+  --shadow-lg: 0 8px 32px rgba(28, 57, 142, 0.15);
+  --shadow-purple: 0 4px 20px var(--color-purple-glow);
+
+  /* ── Transitions ─────────────────────────────────────────────────────────── */
+  --transition-fast: 120ms ease;
+  --transition-base: 220ms ease;
+
+  /* ── Layout ──────────────────────────────────────────────────────────────── */
+  --max-width:      480px;
+  --nav-height:     64px;
+  --header-height:  56px;
+}
+
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.55;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { min-height: 100dvh; display: flex; flex-direction: column; }
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+}
+
+/* ── Display headings → Bangers ──────────────────────────────────────────── */
+/* Geldt voor alle h1/h2/h3 in de app — geen per-component override nodig    */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--display-letter-spacing);
+  font-weight: 400; /* Bangers heeft maar één weight */
+  line-height: 1.15;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); letter-spacing: var(--display-letter-spacing); }
+.font-mono    { font-family: var(--font-mono); }
+.label-caps   { font-family: var(--font-mono); font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.08em; }
