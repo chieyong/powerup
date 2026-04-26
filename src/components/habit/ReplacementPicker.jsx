@@ -1,8 +1,15 @@
 import { useState } from 'react';
 import Card from '../shared/Card';
 
-export default function ReplacementPicker({ options }) {
+// onChoose(text | null) — optionele callback zodat de parent de keuze kan doorgeven aan IfThenPlan
+export default function ReplacementPicker({ options, onChoose }) {
   const [chosen, setChosen] = useState(null);
+
+  const handlePick = (i) => {
+    const next = chosen === i ? null : i;
+    setChosen(next);
+    onChoose?.(next !== null ? options[next] : null);
+  };
 
   return (
     <Card style={styles.card}>
@@ -21,7 +28,7 @@ export default function ReplacementPicker({ options }) {
                 ...styles.option,
                 ...(isChosen ? styles.optionChosen : {}),
               }}
-              onClick={() => setChosen(isChosen ? null : i)}
+              onClick={() => handlePick(i)}
               aria-pressed={isChosen}
             >
               {isChosen && <span style={styles.checkmark}>✓ </span>}

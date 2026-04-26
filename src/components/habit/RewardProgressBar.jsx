@@ -1,53 +1,113 @@
 import { useApp } from '../../context/AppContext';
 
+// ─── Berichten (roteren op weekdag) ────────────────────────────────────────
+// Vijf opties — gedragsgericht, geen beloftes, geen getallen.
+const readinessMessages = [
+  {
+    headline: 'Je bent goed op weg 💪',
+    sub: 'We zien steeds meer verantwoordelijkheid.',
+  },
+  {
+    headline: 'Je laat steeds vaker zien dat je afspraken nakomt',
+    sub: 'Blijf zo doorgaan 🔥',
+  },
+  {
+    headline: 'Elke dag dat je het probeert telt mee',
+    sub: 'Niet perfect hoeft niet — doorgaan wel. ⭐',
+  },
+  {
+    headline: 'We zien het gewoon groeien',
+    sub: 'Je keuzes maken het verschil. 🌱',
+  },
+  {
+    headline: 'Je wordt iemand die voor zichzelf zorgt',
+    sub: 'Dat is precies wat helpt. 👏',
+  },
+];
+
+function getMessage() {
+  return readinessMessages[new Date().getDay() % readinessMessages.length];
+}
+
+// ─── Micro-feedback: welke habits gaan goed de afgelopen 7 dagen? ───────────
+// Toont max 2 bullets voor habits met ≥ 2 succesvolle check-ins in 7 dagen.
+// Als er geen data is: geen bullets (geen placeholder rommel).
+function getPositiveHabits(habits, checkIns) {
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.now() - i * 86400000);
+    return d.toISOString().split('T')[0];
+  });
+
+  return habits
+    .filter(h => h.status === 'active')
+    .filter(habit => {
+      const hits = last7.filter(date => {
+        const ci = checkIns.find(c => c.habitId === habit.id && c.date === date);
+        return ci && (ci.status === 'self_done' || ci.status === 'with_help');
+      }).length;
+      return hits >= 2;
+    })
+    .slice(0, 2);
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 export default function RewardProgressBar() {
-  const { reward } = useApp();
-  const pct = Math.min(100, Math.max(0, reward.progressPercent));
+  const { reward, habits, checkIns } = useApp();
+
+  // progressPercent komt uit AppContext (instelbaar via ouder-scherm).
+  // We tonen het NIET als getal — alleen als zachte balk.
+  // Clamp: altijd tussen 8% en 88% zodat de balk nooit leeg of vol oogt.
+  const fillPct = Math.min(88, Math.max(8, reward.progressPercent ?? 40));
+
+  const message = getMessage();
+  const goodHabits = getPositiveHabits(habits, checkIns);
 
   return (
     <div style={styles.container}>
-      {/* Top row */}
+
+      {/* ── Decoratieve achtergrondgloed ── */}
+      <div style={styles.bgGlow} aria-hidden="true" />
+
+      {/* ── Top-rij: icoon + titel + boodschap ── */}
       <div style={styles.topRow}>
-        <span style={styles.icon}>🎮</span>
+        <span style={styles.icon} aria-hidden="true">🎮</span>
         <div style={styles.textBlock}>
-          {/* Bangers via globale h2-regel */}
           <h2 style={styles.title}>{reward.title}</h2>
-          <span style={styles.subtitle}>{reward.nextMilestone}</span>
+          <p style={styles.headline}>{message.headline}</p>
+          <p style={styles.sub}>{message.sub}</p>
         </div>
-        <span style={styles.pct}>{pct}%</span>
       </div>
 
-      {/* Tetris-pixel track — blokjespatroon als achtergrond */}
+      {/* ── Zachte voortgangsbalk (geen getallen, geen ticks) ── */}
       <div
         style={styles.track}
         role="progressbar"
-        aria-valuenow={pct}
+        aria-label="Gereedheid voor Game PC"
+        aria-valuenow={fillPct}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <div style={{ ...styles.fill, width: `${pct}%` }} />
-        {/* Milestone markers als verticale blokjes */}
-        {[25, 50, 75].map(dot => (
-          <div
-            key={dot}
-            style={{
-              ...styles.milestone,
-              left: `${dot}%`,
-              opacity: pct >= dot ? 1 : 0.3,
-            }}
-          />
-        ))}
+        <div style={{ ...styles.fill, width: `${fillPct}%` }} />
       </div>
 
-      {/* Weeks row */}
-      <div style={styles.weeksRow}>
-        <span style={styles.weekLabel}>WEEK {reward.readinessWeeksCompleted}/{reward.targetWeeks}</span>
-        <span style={styles.weekLabel}>{reward.targetWeeks - reward.readinessWeeksCompleted} WEKEN TE GAAN</span>
-      </div>
+      {/* ── Micro-feedback bullets ── */}
+      {goodHabits.length > 0 && (
+        <ul style={styles.bulletList} aria-label="Wat goed gaat">
+          {goodHabits.map(h => (
+            <li key={h.id} style={styles.bullet}>
+              <span style={styles.bulletCheck} aria-hidden="true">✔</span>
+              <span style={styles.bulletText}>
+                {h.emoji} {h.title.toLowerCase()}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
+// ─── Styles ─────────────────────────────────────────────────────────────────
 const styles = {
   container: {
     backgroundColor: 'var(--color-dark)',
@@ -59,49 +119,65 @@ const styles = {
     position: 'relative',
     overflow: 'hidden',
   },
+
+  // Zachte paarse gloed rechtsonder — puur decoratief
+  bgGlow: {
+    position: 'absolute',
+    bottom: -30,
+    right: -20,
+    width: 120,
+    height: 120,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(113,7,231,0.25) 0%, transparent 70%)',
+    pointerEvents: 'none',
+  },
+
   topRow: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 'var(--space-3)',
     marginBottom: 'var(--space-4)',
   },
   icon: {
-    fontSize: 36,
+    fontSize: 32,
     lineHeight: 1,
     flexShrink: 0,
+    marginTop: 2,
   },
   textBlock: {
     display: 'flex',
     flexDirection: 'column',
+    gap: 3,
     flex: 1,
-    gap: 2,
   },
   title: {
-    /* Bangers via globale h2-regel */
+    // Bangers via globale h2-regel in index.css
     fontSize: 'var(--font-size-xl)',
     color: 'var(--color-text-on-dark)',
     lineHeight: 1,
+    marginBottom: 1,
   },
-  subtitle: {
+  headline: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 700,
+    color: 'rgba(223,231,255,0.95)',
+    lineHeight: 1.35,
+  },
+  sub: {
     fontFamily: 'var(--font-body)',
     fontSize: 'var(--font-size-xs)',
-    color: 'rgba(223,231,255,0.65)',
+    color: 'rgba(223,231,255,0.55)',
     lineHeight: 1.3,
   },
-  pct: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 'var(--font-size-2xl)',
-    color: 'var(--color-purple)',
-    flexShrink: 0,
-    lineHeight: 1,
-    letterSpacing: '0.02em',
-  },
+
+  // Zachte balk — geen ticks, geen getallen
   track: {
     position: 'relative',
-    height: 10,
-    backgroundColor: 'rgba(223,231,255,0.12)',
+    height: 8,
+    backgroundColor: 'rgba(223,231,255,0.10)',
     borderRadius: 'var(--radius-sm)',
-    overflow: 'visible',
+    overflow: 'hidden',
     marginBottom: 'var(--space-3)',
   },
   fill: {
@@ -112,27 +188,33 @@ const styles = {
     borderRadius: 'var(--radius-sm)',
     background: 'linear-gradient(90deg, var(--color-purple), #A855F7)',
     boxShadow: '0 0 10px var(--color-purple-glow)',
-    transition: 'width 0.7s cubic-bezier(0.34,1.56,0.64,1)',
+    transition: 'width 1.2s cubic-bezier(0.34,1.56,0.64,1)',
   },
-  milestone: {
-    position: 'absolute',
-    top: -3,
-    transform: 'translateX(-50%)',
-    width: 4,
-    height: 16,
-    backgroundColor: 'rgba(223,231,255,0.50)',
-    borderRadius: 2,
-    transition: 'opacity var(--transition-base)',
-  },
-  weeksRow: {
+
+  // Micro-feedback
+  bulletList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
     display: 'flex',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    gap: 4,
   },
-  weekLabel: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: 10,
-    color: 'rgba(223,231,255,0.45)',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
+  bullet: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2)',
+  },
+  bulletCheck: {
+    color: '#A855F7',
+    fontSize: 11,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  bulletText: {
+    fontFamily: 'var(--font-body)',
+    fontSize: 'var(--font-size-xs)',
+    color: 'rgba(223,231,255,0.60)',
+    lineHeight: 1.2,
   },
 };

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { categoryMeta, checkinLabels } from '../../data/mockData';
@@ -25,6 +26,9 @@ export default function HabitDetailPage() {
   const checkIn = getTodayCheckIn(habit.id);
   const categoryColor = `var(${meta.color})`;
   const categoryColorSoft = `var(${meta.colorSoft})`;
+
+  // Gekozen alternatief uit het groene blok — vloeit door naar het paarse DAN-blok
+  const [chosenReplacement, setChosenReplacement] = useState(null);
 
   return (
     <div style={styles.page}>
@@ -57,8 +61,8 @@ export default function HabitDetailPage() {
       {/* Content sections */}
       <div style={styles.sections}>
         <WhyCard why={habit.why} />
-        <ReplacementPicker options={habit.replacementOptions} />
-        <IfThenPlan ifThenRule={habit.ifThenRule} />
+        <ReplacementPicker options={habit.replacementOptions} onChoose={setChosenReplacement} />
+        <IfThenPlan ifThenRule={habit.ifThenRule} chosenReplacement={chosenReplacement} />
       </div>
 
       {/* Today check-in sticky bottom */}

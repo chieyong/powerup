@@ -32,10 +32,6 @@ export default function HabitCard({ habit }) {
         <div style={styles.textBlock}>
           {/* h3 pikt Bangers op via globale regel */}
           <h3 style={styles.title}>{habit.title}</h3>
-          {/* JetBrains Mono categorie-label */}
-          <span style={{ ...styles.category, color: categoryColor }}>
-            {meta.emoji} {meta.label}
-          </span>
         </div>
         <span style={styles.chevron}>›</span>
       </div>

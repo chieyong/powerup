@@ -1,7 +1,11 @@
 import Card from '../shared/Card';
 
-export default function IfThenPlan({ ifThenRule }) {
+// chosenReplacement — optioneel. Als ingevuld, vervangt het de DAN-actie.
+export default function IfThenPlan({ ifThenRule, chosenReplacement }) {
   if (!ifThenRule?.if) return null;
+
+  const danText = chosenReplacement ?? ifThenRule.then;
+  const isPersonalised = Boolean(chosenReplacement);
 
   return (
     <Card style={styles.card}>
@@ -15,9 +19,17 @@ export default function IfThenPlan({ ifThenRule }) {
           <span style={styles.text}>{ifThenRule.if}</span>
         </div>
         <div style={styles.arrow}>↓</div>
-        <div style={styles.row}>
+        <div style={{
+          ...styles.row,
+          ...(isPersonalised ? styles.rowPersonalised : {}),
+        }}>
           <span style={{ ...styles.keyword, ...styles.thenKeyword }}>DAN</span>
-          <span style={styles.text}>{ifThenRule.then}</span>
+          <div style={styles.danBlock}>
+            <span style={styles.text}>{danText}</span>
+            {isPersonalised && (
+              <span style={styles.yourChoiceBadge}>jouw keuze ✓</span>
+            )}
+          </div>
         </div>
       </div>
     </Card>
@@ -83,5 +95,24 @@ const styles = {
     color: 'var(--color-text-muted)',
     lineHeight: 1,
     padding: '2px 0',
+  },
+  // DAN-rij krijgt een zachte groene highlight als de keuze gepersonaliseerd is
+  rowPersonalised: {
+    border: '1.5px solid var(--color-green)',
+    backgroundColor: 'var(--color-green-soft)',
+  },
+  danBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    flex: 1,
+  },
+  yourChoiceBadge: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: '0.07em',
+    color: 'var(--color-green)',
+    fontWeight: 700,
   },
 };
