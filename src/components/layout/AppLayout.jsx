@@ -160,7 +160,7 @@ const styles = {
     gap: '3px',
     padding: '8px 12px',
     borderRadius: 'var(--radius-md)',
-    color: 'rgba(223,231,255,0.45)',
+    color: 'rgba(223,231,255,0.65)',
     transition: 'all var(--transition-fast)',
     minWidth: 56,
     textDecoration: 'none',

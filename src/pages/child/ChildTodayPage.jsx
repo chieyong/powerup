@@ -16,31 +16,12 @@ function getIdentityMessage() {
   return identityMessages[new Date().getDay() % identityMessages.length];
 }
 
-function getGreeting(name) {
-  const h = new Date().getHours();
-  if (h < 12) return `Goedemorgen, ${name}!`;
-  if (h < 17) return `Hallo, ${name}!`;
-  return `Goedenavond, ${name}!`;
-}
-
-function getGreetingEmoji() {
-  const h = new Date().getHours();
-  if (h < 12) return '🌤️';
-  if (h < 17) return '☀️';
-  return '🌙';
-}
-
 function getDayProgress(activeHabits, getTodayCheckIn) {
   const done = activeHabits.filter(h => {
     const ci = getTodayCheckIn(h.id);
     return ci && (ci.status === 'self_done' || ci.status === 'with_help');
   }).length;
   return { done, total: activeHabits.length };
-}
-
-// Korte dagafkorting voor naast de naam
-function getShortDay() {
-  return new Date().toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 export default function ChildTodayPage() {
@@ -50,19 +31,6 @@ export default function ChildTodayPage() {
 
   return (
     <div style={styles.page}>
-
-      {/* ── Compact hero: naam + dag op één regel ───────────────────────────
-          Pill verwijderd — was redundant met de habit-cards zelf.
-          Datum klein naast de groet zodat het samen één rustige regel is.
-      */}
-      <div style={styles.hero}>
-        <div style={styles.heroLeft}>
-          <h1 style={styles.heroName}>
-            {getGreeting(child.name)} {getGreetingEmoji()}
-          </h1>
-          <span style={styles.heroDate}>{getShortDay()}</span>
-        </div>
-      </div>
 
       {/* ── Slanke reward bar ────────────────────────────────────────────── */}
       <div style={styles.rewardSection}>
@@ -111,33 +79,8 @@ const styles = {
     paddingBottom: 'var(--space-8)',
   },
 
-  /* Compact hero — één dunne band bovenaan */
-  hero: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 'var(--space-4) var(--space-5) var(--space-3)',
-  },
-  heroLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  heroName: {
-    /* h1 → Bangers via globale CSS */
-    fontSize: 'var(--font-size-xl)',   /* iets kleiner dan 2xl — compacter */
-    color: 'var(--color-text-primary)',
-    lineHeight: 1.05,
-  },
-  heroDate: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: 10,
-    color: 'var(--color-text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-  },
-
   rewardSection: {
+    marginTop: 'var(--space-4)',
     marginBottom: 'var(--space-4)',
   },
 

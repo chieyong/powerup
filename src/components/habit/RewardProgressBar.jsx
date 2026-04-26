@@ -1,32 +1,32 @@
 import { useApp } from '../../context/AppContext';
 
-// ─── Berichten (roteren op weekdag) ────────────────────────────────────────
+// ─── Berichten (roteren op weekdag, naam wordt ingevuld) ───────────────────
 // Vijf opties — gedragsgericht, geen beloftes, geen getallen.
 const readinessMessages = [
-  {
-    headline: 'Je bent goed op weg 💪',
+  (name) => ({
+    headline: `Je bent goed op weg, ${name}! 💪`,
     sub: 'We zien steeds meer verantwoordelijkheid.',
-  },
-  {
-    headline: 'Je laat steeds vaker zien dat je afspraken nakomt',
+  }),
+  (name) => ({
+    headline: `${name}, je laat steeds vaker zien dat je afspraken nakomt`,
     sub: 'Blijf zo doorgaan 🔥',
-  },
-  {
+  }),
+  (name) => ({
     headline: 'Elke dag dat je het probeert telt mee',
     sub: 'Niet perfect hoeft niet — doorgaan wel. ⭐',
-  },
-  {
+  }),
+  (name) => ({
     headline: 'We zien het gewoon groeien',
-    sub: 'Je keuzes maken het verschil. 🌱',
-  },
-  {
-    headline: 'Je wordt iemand die voor zichzelf zorgt',
+    sub: `Je keuzes maken het verschil, ${name}. 🌱`,
+  }),
+  (name) => ({
+    headline: `${name}, je wordt iemand die voor zichzelf zorgt`,
     sub: 'Dat is precies wat helpt. 👏',
-  },
+  }),
 ];
 
-function getMessage() {
-  return readinessMessages[new Date().getDay() % readinessMessages.length];
+function getMessage(name) {
+  return readinessMessages[new Date().getDay() % readinessMessages.length](name);
 }
 
 // ─── Micro-feedback: welke habits gaan goed de afgelopen 7 dagen? ───────────
@@ -52,14 +52,14 @@ function getPositiveHabits(habits, checkIns) {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export default function RewardProgressBar() {
-  const { reward, habits, checkIns } = useApp();
+  const { child, reward, habits, checkIns } = useApp();
 
   // progressPercent komt uit AppContext (instelbaar via ouder-scherm).
   // We tonen het NIET als getal — alleen als zachte balk.
   // Clamp: altijd tussen 8% en 88% zodat de balk nooit leeg of vol oogt.
   const fillPct = Math.min(88, Math.max(8, reward.progressPercent ?? 40));
 
-  const message = getMessage();
+  const message = getMessage(child.name);
   const goodHabits = getPositiveHabits(habits, checkIns);
 
   return (
@@ -115,12 +115,12 @@ const styles = {
     padding: 'var(--space-5)',
     margin: '0 var(--space-5)',
     boxShadow: '0 4px 24px rgba(28,32,43,0.35), inset 0 1px 0 rgba(223,231,255,0.08)',
-    border: '1px solid rgba(113,7,231,0.40)',
+    border: '1px solid rgba(113,7,231,0.28)',
     position: 'relative',
     overflow: 'hidden',
   },
 
-  // Zachte paarse gloed rechtsonder — puur decoratief
+  // Zachte paarse gloed rechtsonder — puur decoratief, gereduceerde intensiteit
   bgGlow: {
     position: 'absolute',
     bottom: -30,
@@ -128,7 +128,7 @@ const styles = {
     width: 120,
     height: 120,
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(113,7,231,0.25) 0%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(113,7,231,0.14) 0%, transparent 70%)',
     pointerEvents: 'none',
   },
 
@@ -167,8 +167,8 @@ const styles = {
   sub: {
     fontFamily: 'var(--font-body)',
     fontSize: 'var(--font-size-xs)',
-    color: 'rgba(223,231,255,0.55)',
-    lineHeight: 1.3,
+    color: 'rgba(223,231,255,0.78)',
+    lineHeight: 1.45,
   },
 
   // Zachte balk — geen ticks, geen getallen
@@ -186,8 +186,8 @@ const styles = {
     top: 0,
     height: '100%',
     borderRadius: 'var(--radius-sm)',
-    background: 'linear-gradient(90deg, var(--color-purple), #A855F7)',
-    boxShadow: '0 0 10px var(--color-purple-glow)',
+    background: 'linear-gradient(90deg, #6806CC, #9F50E8)',
+    boxShadow: '0 0 6px var(--color-purple-glow)',
     transition: 'width 1.2s cubic-bezier(0.34,1.56,0.64,1)',
   },
 
@@ -206,7 +206,7 @@ const styles = {
     gap: 'var(--space-2)',
   },
   bulletCheck: {
-    color: '#A855F7',
+    color: '#C084FC',
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0,
@@ -214,7 +214,7 @@ const styles = {
   bulletText: {
     fontFamily: 'var(--font-body)',
     fontSize: 'var(--font-size-xs)',
-    color: 'rgba(223,231,255,0.60)',
-    lineHeight: 1.2,
+    color: 'rgba(223,231,255,0.78)',
+    lineHeight: 1.4,
   },
 };

@@ -9,7 +9,7 @@
   --color-purple:       #7107E7;   /* secondary — main action color            */
   --color-purple-soft:  rgba(113, 7, 231, 0.12);
   --color-purple-dark:  #5505B8;
-  --color-purple-glow:  rgba(113, 7, 231, 0.30);
+  --color-purple-glow:  rgba(113, 7, 231, 0.20);
 
   --color-green:        #16A34A;   /* success                                   */
   --color-green-soft:   #DCFCE7;
@@ -144,7 +144,7 @@ h1, h2, h3 {
   font-family: var(--font-display);
   letter-spacing: var(--display-letter-spacing);
   font-weight: 400; /* Bangers heeft maar één weight */
-  line-height: 1.15;
+  line-height: 1.22;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
