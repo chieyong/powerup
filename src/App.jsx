@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import AppLayout from './components/layout/AppLayout';
+import LoadingScreen from './components/shared/LoadingScreen';
 import ChildTodayPage from './pages/child/ChildTodayPage';
 import HabitDetailPage from './pages/child/HabitDetailPage';
 import GrowthOverviewPage from './pages/child/GrowthOverviewPage';
@@ -10,7 +11,9 @@ import HabitsManagerPage from './pages/parent/HabitsManagerPage';
 import RewardManagerPage from './pages/parent/RewardManagerPage';
 
 function AppRoutes() {
-  const { mode } = useApp();
+  const { loading } = useApp();
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <Routes>

@@ -3,7 +3,7 @@
 
 export const mockChild = {
   id: 'child_1',
-  name: 'Liam',
+  name: 'Liam',      // demo-naam — echte naam komt uit .env
   age: 12,
   parentId: 'parent_1',
 };
