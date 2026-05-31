@@ -149,7 +149,8 @@ const styles = {
     top: 0,
     zIndex: 100,
     backgroundColor: 'var(--color-dark)',
-    height: 'var(--header-height)',
+    height: 'calc(var(--header-height) + env(safe-area-inset-top))',
+    paddingTop: 'env(safe-area-inset-top)',
     overflow: 'hidden',
   },
   headerInner: {
@@ -221,7 +222,7 @@ const styles = {
   main: {
     flex: 1,
     overflowY: 'auto',
-    paddingBottom: 'calc(var(--nav-height) + var(--space-4))',
+    paddingBottom: 'calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-4))',
   },
   nav: {
     position: 'fixed',
@@ -230,7 +231,8 @@ const styles = {
     transform: 'translateX(-50%)',
     width: '100%',
     maxWidth: 'var(--max-width)',
-    height: 'var(--nav-height)',
+    height: 'calc(var(--nav-height) + env(safe-area-inset-bottom))',
+    paddingBottom: 'env(safe-area-inset-bottom)',
     backgroundColor: 'var(--color-dark)',
     borderTop: '1px solid rgba(223,231,255,0.08)',
     display: 'flex',
