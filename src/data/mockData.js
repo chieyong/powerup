@@ -222,20 +222,19 @@ export const mockHabits = [
 ];
 
 // Dagelijkse check-ins voor deze week
-const today = new Date().toISOString().split('T')[0];
 const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0];
 
 export const mockCheckIns = [
-  // Today — nog niet ingevuld
-  // Yesterday
-  { id: 'ci_1', childId: 'child_1', habitId: 'habit_1', date: yesterday, status: 'self_done', note: '' },
-  { id: 'ci_2', childId: 'child_1', habitId: 'habit_2', date: yesterday, status: 'with_help', note: '' },
-  { id: 'ci_3', childId: 'child_1', habitId: 'habit_3', date: yesterday, status: 'self_done', note: '' },
-  // Two days ago
-  { id: 'ci_4', childId: 'child_1', habitId: 'habit_1', date: twoDaysAgo, status: 'self_done', note: '' },
-  { id: 'ci_5', childId: 'child_1', habitId: 'habit_2', date: twoDaysAgo, status: 'not_yet', note: '' },
-  { id: 'ci_6', childId: 'child_1', habitId: 'habit_3', date: twoDaysAgo, status: 'self_done', note: '' },
+  // Today — nog niet ingevuld door kind
+  // Yesterday — ci_2 heeft een afwijking (kind: met hulp, ouder: nog niet)
+  { id: 'ci_1', childId: 'child_1', habitId: 'habit_1', date: yesterday, status: 'self_done', note: '', parentStatus: 'self_done', parentNote: '' },
+  { id: 'ci_2', childId: 'child_1', habitId: 'habit_2', date: yesterday, status: 'with_help', note: '', parentStatus: 'not_yet', parentNote: '' },
+  { id: 'ci_3', childId: 'child_1', habitId: 'habit_3', date: yesterday, status: 'self_done', note: '', parentStatus: null, parentNote: '' },
+  // Two days ago — geen ouder-invoer
+  { id: 'ci_4', childId: 'child_1', habitId: 'habit_1', date: twoDaysAgo, status: 'self_done', note: '', parentStatus: null, parentNote: '' },
+  { id: 'ci_5', childId: 'child_1', habitId: 'habit_2', date: twoDaysAgo, status: 'not_yet', note: '', parentStatus: null, parentNote: '' },
+  { id: 'ci_6', childId: 'child_1', habitId: 'habit_3', date: twoDaysAgo, status: 'self_done', note: '', parentStatus: null, parentNote: '' },
 ];
 
 // Weekreview data

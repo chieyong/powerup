@@ -137,7 +137,7 @@ export function AppProvider({ children }) {
 
     setCheckIns(prev => {
       const idx = prev.findIndex(ci => ci.habitId === habitId && ci.date === today);
-      if (idx >= 0) { const u = [...prev]; u[idx] = newEntry; return u; }
+      if (idx >= 0) { const u = [...prev]; u[idx] = { ...u[idx], ...newEntry }; return u; }
       return [...prev, newEntry];
     });
 
@@ -146,6 +146,34 @@ export function AppProvider({ children }) {
         console.error('[PowerUp] setCheckIn fout:', err)
       );
     }
+  }, [child.id, isDemo]);
+
+  // ── Ouder check-in voor willekeurige datum ────────────────────────────────
+  const setParentCheckIn = useCallback((habitId, date, status, note = '') => {
+    const id = `ci_${habitId}_${date}`;
+
+    setCheckIns(prev => {
+      const idx = prev.findIndex(ci => ci.habitId === habitId && ci.date === date);
+      let updated;
+      if (idx >= 0) {
+        updated = [...prev];
+        updated[idx] = { ...updated[idx], parentStatus: status, parentNote: note };
+      } else {
+        // Kind heeft nog niets ingevuld voor deze dag
+        updated = [...prev, {
+          id, childId: child.id, habitId, date,
+          status: null, note: '',
+          parentStatus: status, parentNote: note,
+        }];
+      }
+      if (!isDemo) {
+        const entry = updated.find(ci => ci.id === id);
+        setDoc(doc(db, 'checkIns', id), entry).catch(err =>
+          console.error('[PowerUp] setParentCheckIn fout:', err)
+        );
+      }
+      return updated;
+    });
   }, [child.id, isDemo]);
 
   // ── Habit updaten ─────────────────────────────────────────────────────────
@@ -260,6 +288,7 @@ export function AppProvider({ children }) {
       signOutUser,
       getTodayCheckIn,
       setCheckIn,
+      setParentCheckIn,
       updateHabit,
       addHabit,
       getCategoryProgress,

@@ -1,21 +1,30 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { categoryMeta, checkinLabels } from '../../data/mockData';
 import PageHeader from '../../components/shared/PageHeader';
 import Card from '../../components/shared/Card';
 
+function getDayLabel(dateStr) {
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  if (dateStr === today) return 'Vandaag';
+  if (dateStr === yesterday) return 'Gisteren';
+  const d = new Date(dateStr + 'T12:00:00');
+  return ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'][d.getDay()];
+}
+
 export default function ParentOverviewPage() {
-  const { child, reward, activeHabits, maintenanceHabits, checkIns, getCategoryProgress } = useApp();
+  const { child, reward, activeHabits, maintenanceHabits, checkIns, getCategoryProgress, setParentCheckIn } = useApp();
   const navigate = useNavigate();
 
-  // Check-ins van de afgelopen 7 dagen
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() - i * 86400000);
     return d.toISOString().split('T')[0];
-  }).reverse();
-
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayCheckIns = checkIns.filter(ci => ci.date === todayStr);
+  });
 
   return (
     <div style={styles.page}>
@@ -41,26 +50,83 @@ export default function ParentOverviewPage() {
         </div>
       </div>
 
-      {/* Today's check-ins */}
+      {/* Resultaten sectie */}
       <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Vandaag ingevuld</h2>
+        <h2 style={styles.sectionTitle}>Resultaten bekijken & invullen</h2>
+
+        {/* Datumkiezer */}
+        <div style={styles.dateChips}>
+          {last7.map(dateStr => (
+            <button
+              key={dateStr}
+              style={selectedDate === dateStr ? { ...styles.dateChip, ...styles.dateChipActive } : styles.dateChip}
+              onClick={() => setSelectedDate(dateStr)}
+            >
+              {getDayLabel(dateStr)}
+            </button>
+          ))}
+        </div>
+
         {activeHabits.length === 0 ? (
           <Card><p style={styles.emptyText}>Nog geen actieve gewoontes.</p></Card>
         ) : (
-          <div style={styles.checkInList}>
+          <div style={styles.habitCardList}>
             {activeHabits.map(habit => {
-              const ci = todayCheckIns.find(c => c.habitId === habit.id);
-              const ciInfo = ci ? checkinLabels[ci.status] : null;
+              const ci = checkIns.find(c => c.habitId === habit.id && c.date === selectedDate) || null;
+              const childStatus = ci?.status || null;
+              const parentStatus = ci?.parentStatus || null;
+              const hasDiff = childStatus && parentStatus && childStatus !== parentStatus;
+              const isMatch = childStatus && parentStatus && childStatus === parentStatus;
+
               return (
-                <div key={habit.id} style={styles.checkInRow}>
-                  <span style={styles.habitEmoji}>{habit.emoji}</span>
-                  <span style={styles.habitName}>{habit.title}</span>
-                  {ciInfo ? (
-                    <span style={{ ...styles.ciStatus, color: ciInfo.color }}>
-                      {ciInfo.emoji} {ciInfo.label}
-                    </span>
-                  ) : (
-                    <span style={styles.ciPending}>Nog niet</span>
+                <div
+                  key={habit.id}
+                  style={hasDiff ? { ...styles.habitCard, ...styles.habitCardDiff } : styles.habitCard}
+                >
+                  {/* Hoofd rij: emoji + naam + badge */}
+                  <div style={styles.habitCardHeader}>
+                    <span style={styles.habitEmoji}>{habit.emoji}</span>
+                    <span style={styles.habitName}>{habit.title}</span>
+                    {hasDiff && <span style={styles.diffBadge}>Afwijking</span>}
+                    {isMatch && <span style={styles.matchBadge}>Match</span>}
+                  </div>
+
+                  {/* Kind-resultaat */}
+                  <div style={styles.resultRow}>
+                    <span style={styles.resultLabel}>{child.name}:</span>
+                    {childStatus ? (
+                      <span style={{ ...styles.resultValue, color: checkinLabels[childStatus].color }}>
+                        {checkinLabels[childStatus].emoji} {checkinLabels[childStatus].label}
+                      </span>
+                    ) : (
+                      <span style={styles.resultEmpty}>Nog niet ingevuld</span>
+                    )}
+                  </div>
+
+                  {/* Ouder-knoppen */}
+                  <div style={styles.resultRow}>
+                    <span style={styles.resultLabel}>Jij:</span>
+                    <div style={styles.parentButtons}>
+                      {Object.entries(checkinLabels).map(([key, info]) => (
+                        <button
+                          key={key}
+                          style={parentStatus === key
+                            ? { ...styles.parentBtn, backgroundColor: info.color, color: '#fff', borderColor: info.color }
+                            : styles.parentBtn
+                          }
+                          onClick={() => setParentCheckIn(habit.id, selectedDate, key)}
+                        >
+                          {info.emoji} {key === 'self_done' ? 'Zelf' : key === 'with_help' ? 'Hulp' : 'Nee'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Afwijking toelichting */}
+                  {hasDiff && (
+                    <p style={styles.diffExplain}>
+                      {child.name} zei &ldquo;{checkinLabels[childStatus].label}&rdquo;, jij registreert &ldquo;{checkinLabels[parentStatus].label}&rdquo;
+                    </p>
                   )}
                 </div>
               );
@@ -179,19 +245,53 @@ const styles = {
     letterSpacing: '0.5px',
     marginBottom: 'var(--space-3)',
   },
-  checkInList: {
+  dateChips: {
+    display: 'flex',
+    gap: 'var(--space-2)',
+    overflowX: 'auto',
+    paddingBottom: 'var(--space-2)',
+    marginBottom: 'var(--space-3)',
+  },
+  dateChip: {
+    flexShrink: 0,
+    padding: 'var(--space-2) var(--space-3)',
+    borderRadius: 'var(--radius-full)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-card)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-medium)',
+    color: 'var(--color-text-secondary)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-family)',
+  },
+  dateChipActive: {
+    backgroundColor: 'var(--color-primary)',
+    borderColor: 'var(--color-primary)',
+    color: '#fff',
+  },
+  habitCardList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-3)',
+  },
+  habitCard: {
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-2)',
+    padding: 'var(--space-4)',
+    backgroundColor: 'var(--color-bg-card)',
+    borderRadius: 'var(--radius-lg)',
+    border: '1px solid var(--color-border)',
   },
-  checkInRow: {
+  habitCardDiff: {
+    borderColor: 'var(--color-amber)',
+    borderLeftWidth: 4,
+    backgroundColor: 'var(--color-amber-soft)',
+  },
+  habitCardHeader: {
     display: 'flex',
     alignItems: 'center',
-    gap: 'var(--space-3)',
-    padding: 'var(--space-3) var(--space-4)',
-    backgroundColor: 'var(--color-bg-card)',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
+    gap: 'var(--space-2)',
   },
   habitEmoji: { fontSize: 20, flexShrink: 0 },
   habitName: {
@@ -200,15 +300,67 @@ const styles = {
     color: 'var(--color-text-primary)',
     fontWeight: 'var(--font-weight-medium)',
   },
-  ciStatus: {
-    fontSize: 'var(--font-size-sm)',
-    fontWeight: 'var(--font-weight-medium)',
+  diffBadge: {
+    fontSize: 'var(--font-size-xs)',
+    fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-amber)',
+    backgroundColor: '#FDE68A',
+    borderRadius: 'var(--radius-full)',
+    padding: '2px 8px',
     flexShrink: 0,
   },
-  ciPending: {
+  matchBadge: {
+    fontSize: 'var(--font-size-xs)',
+    fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-green)',
+    backgroundColor: 'var(--color-green-soft)',
+    borderRadius: 'var(--radius-full)',
+    padding: '2px 8px',
+    flexShrink: 0,
+  },
+  resultRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-3)',
+  },
+  resultLabel: {
     fontSize: 'var(--font-size-sm)',
     color: 'var(--color-text-muted)',
+    fontWeight: 'var(--font-weight-medium)',
+    minWidth: 44,
     flexShrink: 0,
+  },
+  resultValue: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-medium)',
+  },
+  resultEmpty: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-muted)',
+    fontStyle: 'italic',
+  },
+  parentButtons: {
+    display: 'flex',
+    gap: 'var(--space-2)',
+    flexWrap: 'wrap',
+  },
+  parentBtn: {
+    padding: '4px 10px',
+    borderRadius: 'var(--radius-full)',
+    border: '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-bg-subtle)',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-medium)',
+    color: 'var(--color-text-secondary)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-family)',
+    transition: 'all 0.15s ease',
+  },
+  diffExplain: {
+    fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-amber)',
+    fontStyle: 'italic',
+    marginTop: 'var(--space-1)',
   },
   emptyText: {
     color: 'var(--color-text-muted)',
