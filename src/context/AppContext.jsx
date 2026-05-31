@@ -3,7 +3,7 @@ import { collection, doc, getDocs, setDoc, query, where } from 'firebase/firesto
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { db, auth, googleProvider } from '../firebase';
 import {
-  mockChild, mockReward, mockHabits, mockCheckIns, mockWeeklyReview,
+  mockChild, mockReward, mockHabits, mockCheckIns, mockWeeklyReview, mockConfig,
 } from '../data/mockData';
 
 const AppContext = createContext(null);
@@ -29,8 +29,9 @@ async function loadFromFirestore() {
   return {
     habits,
     checkIns,
-    reward:      settingsMap.reward      ?? mockReward,
+    reward:       settingsMap.reward       ?? mockReward,
     weeklyReview: settingsMap.weeklyReview ?? mockWeeklyReview,
+    config:       settingsMap.config       ?? mockConfig,
   };
 }
 
@@ -43,6 +44,7 @@ async function seedFirestore() {
   }
   await setDoc(doc(db, 'settings', 'reward'), mockReward);
   await setDoc(doc(db, 'settings', 'weeklyReview'), mockWeeklyReview);
+  await setDoc(doc(db, 'settings', 'config'), mockConfig);
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -52,6 +54,7 @@ export function AppProvider({ children }) {
   const [habits,       setHabits]       = useState(mockHabits);
   const [checkIns,     setCheckIns]     = useState(mockCheckIns);
   const [weeklyReview, setWeeklyReview] = useState(mockWeeklyReview);
+  const [config,       setConfig]       = useState(mockConfig);
   const [mode,         setMode]         = useState('child');
   const [user,         setUser]         = useState(null);
   const [isDemo,       setIsDemo]       = useState(true);   // demo totdat echte user inlogt
@@ -73,6 +76,7 @@ export function AppProvider({ children }) {
         setCheckIns(mockCheckIns);
         setReward(mockReward);
         setWeeklyReview(mockWeeklyReview);
+        setConfig(mockConfig);
         setChild(mockChild);   // herstel demo-naam "Liam"
         setMode('child');
         setIsDemo(true);
@@ -98,11 +102,13 @@ export function AppProvider({ children }) {
           setCheckIns(seeded.checkIns);
           setReward(seeded.reward);
           setWeeklyReview(seeded.weeklyReview);
+          setConfig(seeded.config);
         } else {
           setHabits(data.habits);
           setCheckIns(data.checkIns);
           setReward(data.reward);
           setWeeklyReview(data.weeklyReview);
+          setConfig(data.config);
         }
       } catch (err) {
         console.error('[PowerUp] Firestore laad-fout:', err);
@@ -118,7 +124,7 @@ export function AppProvider({ children }) {
   }, []);
 
   // ── Computed ─────────────────────────────────────────────────────────────
-  const activeHabits      = habits.filter(h => h.status === 'active').slice(0, 3);
+  const activeHabits      = habits.filter(h => h.status === 'active').slice(0, config.maxActiveHabits);
   const maintenanceHabits = habits.filter(h => h.status === 'maintenance');
   const notStartedHabits  = habits.filter(h => h.status === 'not_started');
   const pausedHabits      = habits.filter(h => h.status === 'paused');
@@ -237,6 +243,19 @@ export function AppProvider({ children }) {
     }
   }, [isDemo]);
 
+  // ── Config updaten (ouder-instellingen) ──────────────────────────────────
+  const updateConfig = useCallback((updates) => {
+    setConfig(prev => {
+      const updated = { ...prev, ...updates };
+      if (!isDemo) {
+        setDoc(doc(db, 'settings', 'config'), updated).catch(err =>
+          console.error('[PowerUp] updateConfig fout:', err)
+        );
+      }
+      return updated;
+    });
+  }, [isDemo]);
+
   // ── Beloning updaten ──────────────────────────────────────────────────────
   const updateReward = useCallback((updates) => {
     setReward(prev => {
@@ -279,6 +298,8 @@ export function AppProvider({ children }) {
       pausedHabits,
       checkIns,
       weeklyReview,
+      config,
+      updateConfig,
       mode,
       setMode,
       loading,

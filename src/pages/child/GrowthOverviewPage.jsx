@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { categoryMeta } from '../../data/mockData';
+import { categoryMeta, statusLabels } from '../../data/mockData';
 import PageHeader from '../../components/shared/PageHeader';
 
 // ─── Kwalitatieve voortgangslabels ──────────────────────────────────────────
@@ -21,7 +22,15 @@ function getStreakLabel(streak) {
   return null; // Geen streakbericht bij 0 of 1 dag — geen druk zetten
 }
 
-function CategoryMeter({ meta, progress }) {
+const statusBadgeStyle = {
+  active:      { color: 'var(--color-primary)',    bg: 'var(--color-primary-soft)' },
+  maintenance: { color: 'var(--color-green)',      bg: 'var(--color-green-soft)' },
+  paused:      { color: 'var(--color-text-muted)', bg: 'var(--color-bg-subtle)' },
+  not_started: { color: 'var(--color-amber)',      bg: 'var(--color-amber-soft)' },
+};
+
+function CategoryMeter({ meta, progress, categoryKey, catHabits }) {
+  const [expanded, setExpanded] = useState(false);
   const color = `var(${meta.color})`;
   const colorSoft = `var(${meta.colorSoft})`;
   const { text, strong } = getProgressLabel(progress);
@@ -36,20 +45,43 @@ function CategoryMeter({ meta, progress }) {
             {text}
           </span>
         </div>
-        {/* Geen percentage — balk geeft al een visuele indicatie */}
+        {catHabits.length > 0 && (
+          <button
+            style={styles.expandBtn}
+            onClick={() => setExpanded(e => !e)}
+            aria-label={expanded ? 'Inklappen' : 'Uitklappen'}
+          >
+            {expanded ? '▲' : '▼'}
+          </button>
+        )}
       </div>
-      {/* Subtiele balk: lager, minder precisie door afgeronde fill */}
       <div style={styles.meterTrack} aria-hidden="true">
         <div
           style={{
             ...styles.meterFill,
-            // Snap naar driestappen om niet te exact te zijn
             width: progress >= 80 ? '85%' : progress >= 55 ? '60%' : progress >= 30 ? '35%' : progress > 0 ? '15%' : '0%',
             backgroundColor: color,
             opacity: 0.65,
           }}
         />
       </div>
+
+      {expanded && catHabits.length > 0 && (
+        <div style={styles.habitList}>
+          {catHabits.map(h => {
+            const sc = statusBadgeStyle[h.status] || statusBadgeStyle.paused;
+            return (
+              <div key={h.id} style={styles.habitRow}>
+                <span style={styles.habitRowEmoji}>{h.emoji}</span>
+                <span style={styles.habitRowTitle}>{h.title}</span>
+                <span style={{ ...styles.habitRowBadge, color: sc.color, backgroundColor: sc.bg }}>
+                  {statusLabels[h.status]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -61,6 +93,7 @@ export default function GrowthOverviewPage() {
     key,
     meta,
     progress: getCategoryProgress(key),
+    catHabits: habits.filter(h => h.category === key),
   }));
 
   // Streak berekenen — maar als getal niet tonen
@@ -77,6 +110,7 @@ export default function GrowthOverviewPage() {
 
   const maintenanceHabits = habits.filter(h => h.status === 'maintenance');
   const activeHabits      = habits.filter(h => h.status === 'active');
+  const notStartedHabits  = habits.filter(h => h.status === 'not_started');
 
   return (
     <div style={styles.page}>
@@ -131,8 +165,8 @@ export default function GrowthOverviewPage() {
           Dit helpt jullie samen de week te bespreken — het is geen cijfer.
         </p>
         <div style={styles.metersList}>
-          {categories.map(({ key, meta, progress }) => (
-            <CategoryMeter key={key} meta={meta} progress={progress} />
+          {categories.map(({ key, meta, progress, catHabits }) => (
+            <CategoryMeter key={key} meta={meta} progress={progress} categoryKey={key} catHabits={catHabits} />
           ))}
         </div>
       </div>
@@ -150,6 +184,27 @@ export default function GrowthOverviewPage() {
                 <span style={styles.maintenanceEmoji}>{h.emoji}</span>
                 <span style={styles.maintenanceTitle}>{h.title}</span>
                 <span style={styles.maintenanceBadge}>Gaat goed ✓</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Gewoontes die nog niet gestart zijn */}
+      {notStartedHabits.length > 0 && (
+        <div style={styles.maintenanceSection}>
+          <h2 style={styles.sectionTitle}>Hier kun je nog aan werken</h2>
+          <p style={styles.maintenanceHint}>
+            Deze gewoontes staan klaar — misschien iets voor later?
+          </p>
+          <div style={styles.maintenanceList}>
+            {notStartedHabits.map(h => (
+              <div key={h.id} style={styles.maintenanceItem}>
+                <span style={styles.maintenanceEmoji}>{h.emoji}</span>
+                <span style={styles.maintenanceTitle}>{h.title}</span>
+                <span style={{ ...styles.maintenanceBadge, color: 'var(--color-amber)', backgroundColor: 'var(--color-amber-soft)' }}>
+                  Binnenkort
+                </span>
               </div>
             ))}
           </div>
@@ -264,6 +319,43 @@ const styles = {
     transition: 'width 0.8s cubic-bezier(0.34,1.26,0.64,1)',
   },
 
+  expandBtn: {
+    fontSize: 12,
+    color: 'var(--color-text-muted)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px 6px',
+    flexShrink: 0,
+  },
+  habitList: {
+    marginTop: 'var(--space-3)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-2)',
+  },
+  habitRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2)',
+    padding: 'var(--space-2) var(--space-3)',
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 'var(--radius-md)',
+  },
+  habitRowEmoji: { fontSize: 18, flexShrink: 0 },
+  habitRowTitle: {
+    flex: 1,
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-primary)',
+    fontWeight: 'var(--font-weight-medium)',
+  },
+  habitRowBadge: {
+    fontSize: 'var(--font-size-xs)',
+    fontWeight: 'var(--font-weight-medium)',
+    padding: '2px 8px',
+    borderRadius: 'var(--radius-full)',
+    flexShrink: 0,
+  },
   maintenanceSection: {
     padding: '0 var(--space-5)',
     marginBottom: 'var(--space-6)',

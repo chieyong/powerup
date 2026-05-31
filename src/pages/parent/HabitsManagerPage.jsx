@@ -198,7 +198,7 @@ function HabitForm({ habit, onSave, onCancel }) {
 }
 
 export default function HabitsManagerPage() {
-  const { habits, updateHabit, addHabit, activeHabits } = useApp();
+  const { habits, updateHabit, addHabit, activeHabits, config, updateConfig } = useApp();
   const [editingHabit, setEditingHabit] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -219,9 +219,8 @@ export default function HabitsManagerPage() {
   };
 
   const handleStatusChange = (habitId, newStatus) => {
-    // Regel: max 3 active
-    if (newStatus === 'active' && activeHabits.length >= 3) {
-      alert('Maximaal 3 actieve gewoontes tegelijk. Zet er eerst een op onderhoud of pauzeer er een.');
+    if (newStatus === 'active' && activeHabits.length >= config.maxActiveHabits) {
+      alert(`Maximaal ${config.maxActiveHabits} actieve gewoontes tegelijk. Zet er eerst een op onderhoud of pauzeer er een.`);
       return;
     }
     updateHabit(habitId, { status: newStatus });
@@ -242,10 +241,26 @@ export default function HabitsManagerPage() {
       <Card style={styles.rulesCard}>
         <p style={styles.rulesTitle}>📋 Regels</p>
         <ul style={styles.rulesList}>
-          <li>Max 3 actieve gewoontes tegelijk</li>
+          <li>Max {config.maxActiveHabits} actieve gewoontes tegelijk</li>
           <li>Max 1 nieuwe gewoonte per week</li>
           <li>Een gewoonte naar "onderhoud" als hij 5/7 dagen goed gaat</li>
         </ul>
+        <div style={styles.maxRow}>
+          <span style={styles.maxLabel}>Max actief:</span>
+          <div style={styles.stepper}>
+            <button
+              style={styles.stepBtn}
+              onClick={() => updateConfig({ maxActiveHabits: Math.max(1, config.maxActiveHabits - 1) })}
+              disabled={config.maxActiveHabits <= 1}
+            >−</button>
+            <span style={styles.stepVal}>{config.maxActiveHabits}</span>
+            <button
+              style={styles.stepBtn}
+              onClick={() => updateConfig({ maxActiveHabits: Math.min(7, config.maxActiveHabits + 1) })}
+              disabled={config.maxActiveHabits >= 7}
+            >+</button>
+          </div>
+        </div>
       </Card>
 
       {/* Add button */}
@@ -307,6 +322,47 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
+  },
+  maxRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 'var(--space-3)',
+    paddingTop: 'var(--space-3)',
+    borderTop: '1px solid rgba(113,7,231,0.15)',
+  },
+  maxLabel: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 'var(--font-weight-bold)',
+    color: 'var(--color-primary-dark)',
+  },
+  stepper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-3)',
+  },
+  stepBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 'var(--radius-full)',
+    border: '1.5px solid var(--color-primary)',
+    backgroundColor: 'var(--color-bg-card)',
+    color: 'var(--color-primary)',
+    fontSize: 18,
+    fontWeight: 'var(--font-weight-bold)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'var(--font-family)',
+    lineHeight: 1,
+  },
+  stepVal: {
+    fontSize: 'var(--font-size-lg)',
+    fontWeight: 'var(--font-weight-black)',
+    color: 'var(--color-primary)',
+    minWidth: 24,
+    textAlign: 'center',
   },
   addSection: {
     padding: '0 var(--space-5)',

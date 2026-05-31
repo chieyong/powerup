@@ -15,7 +15,7 @@ function getDayLabel(dateStr) {
 }
 
 export default function ParentOverviewPage() {
-  const { child, reward, activeHabits, maintenanceHabits, checkIns, getCategoryProgress, setParentCheckIn } = useApp();
+  const { child, reward, activeHabits, maintenanceHabits, checkIns, getCategoryProgress, setParentCheckIn, config } = useApp();
   const navigate = useNavigate();
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -37,7 +37,7 @@ export default function ParentOverviewPage() {
       {/* Quick stats */}
       <div style={styles.statsRow}>
         <div style={styles.statCard}>
-          <span style={styles.statVal}>{activeHabits.length}/3</span>
+          <span style={styles.statVal}>{activeHabits.length}/{config.maxActiveHabits}</span>
           <span style={styles.statLabel}>Actieve gewoontes</span>
         </div>
         <div style={styles.statCard}>

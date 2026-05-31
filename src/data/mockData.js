@@ -1,6 +1,10 @@
 // PowerUp — Mock Data
 // Alle data is in het Nederlands, child-friendly
 
+export const mockConfig = {
+  maxActiveHabits: 3,
+};
+
 export const mockChild = {
   id: 'child_1',
   name: 'Liam',      // demo-naam — echte naam komt uit .env
