@@ -29,7 +29,52 @@ const statusBadgeStyle = {
   not_started: { color: 'var(--color-amber)',      bg: 'var(--color-amber-soft)' },
 };
 
-function CategoryMeter({ meta, progress, categoryKey, catHabits }) {
+// Bereken 6 wekelijkse vensters (oudste links, meest recent rechts)
+// Geeft per venster het aantal gedane dagen terug (0–7)
+function getWeeklyDots(habitId, checkIns) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const weekOffset = (5 - i) * 7; // i=0 → oudste (35 dagen terug), i=5 → meest recent
+    let done = 0;
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(Date.now() - (weekOffset + d) * 86400000).toISOString().split('T')[0];
+      if (checkIns.some(ci => ci.habitId === habitId && ci.date === date &&
+          (ci.status === 'self_done' || ci.status === 'with_help'))) {
+        done++;
+      }
+    }
+    return done;
+  });
+}
+
+function dotColor(done) {
+  if (done >= 5) return 'var(--color-green)';
+  if (done >= 3) return 'var(--color-amber)';
+  if (done >= 1) return 'var(--color-text-muted)';
+  return 'transparent';
+}
+
+function WeekDots({ habitId, checkIns }) {
+  const dots = getWeeklyDots(habitId, checkIns);
+  const hasAnyData = dots.some(d => d > 0);
+  if (!hasAnyData) return null;
+  return (
+    <div style={styles.weekDots}>
+      {dots.map((done, i) => (
+        <div
+          key={i}
+          style={{
+            ...styles.dot,
+            backgroundColor: dotColor(done),
+            border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
+          }}
+          title={done > 0 ? `${done} van 7 dagen` : 'Niet bijgehouden'}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CategoryMeter({ meta, progress, categoryKey, catHabits, checkIns }) {
   const [expanded, setExpanded] = useState(false);
   const color = `var(${meta.color})`;
   const colorSoft = `var(${meta.colorSoft})`;
@@ -70,13 +115,17 @@ function CategoryMeter({ meta, progress, categoryKey, catHabits }) {
         <div style={styles.habitList}>
           {catHabits.map(h => {
             const sc = statusBadgeStyle[h.status] || statusBadgeStyle.paused;
+            const showDots = h.status === 'active' || h.status === 'maintenance';
             return (
               <div key={h.id} style={styles.habitRow}>
-                <span style={styles.habitRowEmoji}>{h.emoji}</span>
-                <span style={styles.habitRowTitle}>{h.title}</span>
-                <span style={{ ...styles.habitRowBadge, color: sc.color, backgroundColor: sc.bg }}>
-                  {statusLabels[h.status]}
-                </span>
+                <div style={styles.habitRowTop}>
+                  <span style={styles.habitRowEmoji}>{h.emoji}</span>
+                  <span style={styles.habitRowTitle}>{h.title}</span>
+                  <span style={{ ...styles.habitRowBadge, color: sc.color, backgroundColor: sc.bg }}>
+                    {statusLabels[h.status]}
+                  </span>
+                </div>
+                {showDots && <WeekDots habitId={h.id} checkIns={checkIns} />}
               </div>
             );
           })}
@@ -166,7 +215,7 @@ export default function GrowthOverviewPage() {
         </p>
         <div style={styles.metersList}>
           {categories.map(({ key, meta, progress, catHabits }) => (
-            <CategoryMeter key={key} meta={meta} progress={progress} categoryKey={key} catHabits={catHabits} />
+            <CategoryMeter key={key} meta={meta} progress={progress} categoryKey={key} catHabits={catHabits} checkIns={checkIns} />
           ))}
         </div>
       </div>
@@ -336,11 +385,16 @@ const styles = {
   },
   habitRow: {
     display: 'flex',
-    alignItems: 'center',
+    flexDirection: 'column',
     gap: 'var(--space-2)',
     padding: 'var(--space-2) var(--space-3)',
     backgroundColor: 'rgba(255,255,255,0.55)',
     borderRadius: 'var(--radius-md)',
+  },
+  habitRowTop: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-2)',
   },
   habitRowEmoji: { fontSize: 18, flexShrink: 0 },
   habitRowTitle: {
@@ -354,6 +408,17 @@ const styles = {
     fontWeight: 'var(--font-weight-medium)',
     padding: '2px 8px',
     borderRadius: 'var(--radius-full)',
+    flexShrink: 0,
+  },
+  weekDots: {
+    display: 'flex',
+    gap: 5,
+    paddingLeft: 26, // uitlijnen met de titel (voorbij de emoji)
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: '50%',
     flexShrink: 0,
   },
   maintenanceSection: {
