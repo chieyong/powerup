@@ -29,29 +29,17 @@ function WeekDots({ habitId, checkIns }) {
   const dots = getWeeklyDots(habitId, checkIns);
   if (!dots.some(d => d > 0)) return null;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 26 }}>
-      <span style={dotLabelStyle}>afgelopen 6 weken</span>
-      <div style={{ display: 'flex', gap: 5 }}>
-        {dots.map((done, i) => (
-          <div key={i} style={{
-            width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-            backgroundColor: dotColor(done),
-            border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
-          }} />
-        ))}
-      </div>
-      <span style={dotLabelStyle}>● ≥5d &nbsp;● 3-4d &nbsp;● 1-2d &nbsp;○ 0d</span>
+    <div style={{ display: 'flex', gap: 5, paddingLeft: 26 }}>
+      {dots.map((done, i) => (
+        <div key={i} style={{
+          width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+          backgroundColor: dotColor(done),
+          border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
+        }} />
+      ))}
     </div>
   );
 }
-
-const dotLabelStyle = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: 9,
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-  color: 'var(--color-text-muted)',
-};
 
 const statusBadgeStyle = {
   active:      { color: 'var(--color-primary)',    bg: 'var(--color-primary-soft)' },
@@ -202,6 +190,18 @@ export default function ParentOverviewPage() {
       {/* Category progress */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>Voortgang per gebied (7 dagen)</h2>
+        <div style={styles.weekDotsLegend}>
+          <span style={styles.weekDotsLegendLabel}>bolletjes = afgelopen 6 weken per gewoonte:</span>
+          <span style={styles.weekDotsLegendItems}>
+            <span style={{ color: 'var(--color-green)' }}>●</span> 5-7d
+            <span style={{ display: 'inline-block', width: 8 }} />
+            <span style={{ color: 'var(--color-amber)' }}>●</span> 3-4d
+            <span style={{ display: 'inline-block', width: 8 }} />
+            <span style={{ color: 'var(--color-text-muted)' }}>●</span> 1-2d
+            <span style={{ display: 'inline-block', width: 8 }} />
+            <span style={{ color: 'var(--color-border)' }}>○</span> 0d
+          </span>
+        </div>
         <div style={styles.categoryList}>
           {Object.entries(categoryMeta).map(([key, meta]) => {
             const pct = getCategoryProgress(key);
@@ -463,6 +463,31 @@ const styles = {
     color: 'var(--color-text-muted)',
     textAlign: 'center',
     padding: 'var(--space-4)',
+  },
+  weekDotsLegend: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    marginBottom: 'var(--space-3)',
+    padding: 'var(--space-2) var(--space-3)',
+    backgroundColor: 'var(--color-bg-card)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--color-border)',
+  },
+  weekDotsLegendLabel: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: '0.07em',
+    color: 'var(--color-text-muted)',
+  },
+  weekDotsLegendItems: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 10,
+    color: 'var(--color-text-secondary)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
   categoryList: {
     display: 'flex',

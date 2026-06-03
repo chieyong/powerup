@@ -57,22 +57,35 @@ function WeekDots({ habitId, checkIns }) {
   const dots = getWeeklyDots(habitId, checkIns);
   if (!dots.some(d => d > 0)) return null;
   return (
-    <div style={styles.weekDotsBlock}>
-      <span style={styles.weekDotsLabel}>afgelopen 6 weken</span>
-      <div style={styles.weekDots}>
-        {dots.map((done, i) => (
-          <div
-            key={i}
-            style={{
-              ...styles.dot,
-              backgroundColor: dotColor(done),
-              border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
-            }}
-            title={done > 0 ? `${done} van 7 dagen` : 'Niet bijgehouden'}
-          />
-        ))}
-      </div>
-      <span style={styles.weekDotsLegend}>● ≥5d &nbsp;● 3-4d &nbsp;● 1-2d &nbsp;○ 0d</span>
+    <div style={styles.weekDots}>
+      {dots.map((done, i) => (
+        <div
+          key={i}
+          style={{
+            ...styles.dot,
+            backgroundColor: dotColor(done),
+            border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
+          }}
+          title={done > 0 ? `${done} van 7 dagen` : 'Niet bijgehouden'}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WeekDotsLegend() {
+  return (
+    <div style={styles.weekDotsLegendBlock}>
+      <span style={styles.weekDotsLegendLabel}>afgelopen 6 weken per gewoonte:</span>
+      <span style={styles.weekDotsLegendItems}>
+        <span style={{ color: 'var(--color-green)' }}>●</span> 5-7d
+        <span style={styles.legendSep} />
+        <span style={{ color: 'var(--color-amber)' }}>●</span> 3-4d
+        <span style={styles.legendSep} />
+        <span style={{ color: 'var(--color-text-muted)' }}>●</span> 1-2d
+        <span style={styles.legendSep} />
+        <span style={{ color: 'var(--color-border)' }}>○</span> 0d
+      </span>
     </div>
   );
 }
@@ -216,6 +229,7 @@ export default function GrowthOverviewPage() {
         <p style={styles.dataHint}>
           Dit helpt jullie samen de week te bespreken — het is geen cijfer.
         </p>
+        <WeekDotsLegend />
         <div style={styles.metersList}>
           {categories.map(({ key, meta, progress, catHabits }) => (
             <CategoryMeter key={key} meta={meta} progress={progress} categoryKey={key} catHabits={catHabits} checkIns={checkIns} />
@@ -413,28 +427,39 @@ const styles = {
     borderRadius: 'var(--radius-full)',
     flexShrink: 0,
   },
-  weekDotsBlock: {
+  weekDots: {
+    display: 'flex',
+    gap: 5,
+    paddingLeft: 26,
+  },
+  weekDotsLegendBlock: {
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
-    paddingLeft: 26,
+    marginBottom: 'var(--space-4)',
+    padding: 'var(--space-2) var(--space-3)',
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--color-border)',
   },
-  weekDotsLabel: {
+  weekDotsLegendLabel: {
     fontFamily: 'var(--font-mono)',
     fontSize: 9,
     textTransform: 'uppercase',
     letterSpacing: '0.07em',
     color: 'var(--color-text-muted)',
   },
-  weekDots: {
-    display: 'flex',
-    gap: 5,
-  },
-  weekDotsLegend: {
+  weekDotsLegendItems: {
     fontFamily: 'var(--font-mono)',
-    fontSize: 9,
-    color: 'var(--color-text-muted)',
-    letterSpacing: '0.04em',
+    fontSize: 10,
+    color: 'var(--color-text-secondary)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendSep: {
+    display: 'inline-block',
+    width: 8,
   },
   dot: {
     width: 10,
