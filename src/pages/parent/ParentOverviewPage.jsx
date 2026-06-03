@@ -29,17 +29,29 @@ function WeekDots({ habitId, checkIns }) {
   const dots = getWeeklyDots(habitId, checkIns);
   if (!dots.some(d => d > 0)) return null;
   return (
-    <div style={{ display: 'flex', gap: 5, paddingLeft: 26 }}>
-      {dots.map((done, i) => (
-        <div key={i} style={{
-          width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-          backgroundColor: dotColor(done),
-          border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
-        }} />
-      ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 26 }}>
+      <span style={dotLabelStyle}>afgelopen 6 weken</span>
+      <div style={{ display: 'flex', gap: 5 }}>
+        {dots.map((done, i) => (
+          <div key={i} style={{
+            width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+            backgroundColor: dotColor(done),
+            border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
+          }} />
+        ))}
+      </div>
+      <span style={dotLabelStyle}>● ≥5d &nbsp;● 3-4d &nbsp;● 1-2d &nbsp;○ 0d</span>
     </div>
   );
 }
+
+const dotLabelStyle = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+  color: 'var(--color-text-muted)',
+};
 
 const statusBadgeStyle = {
   active:      { color: 'var(--color-primary)',    bg: 'var(--color-primary-soft)' },

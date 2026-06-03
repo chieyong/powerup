@@ -55,21 +55,24 @@ function dotColor(done) {
 
 function WeekDots({ habitId, checkIns }) {
   const dots = getWeeklyDots(habitId, checkIns);
-  const hasAnyData = dots.some(d => d > 0);
-  if (!hasAnyData) return null;
+  if (!dots.some(d => d > 0)) return null;
   return (
-    <div style={styles.weekDots}>
-      {dots.map((done, i) => (
-        <div
-          key={i}
-          style={{
-            ...styles.dot,
-            backgroundColor: dotColor(done),
-            border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
-          }}
-          title={done > 0 ? `${done} van 7 dagen` : 'Niet bijgehouden'}
-        />
-      ))}
+    <div style={styles.weekDotsBlock}>
+      <span style={styles.weekDotsLabel}>afgelopen 6 weken</span>
+      <div style={styles.weekDots}>
+        {dots.map((done, i) => (
+          <div
+            key={i}
+            style={{
+              ...styles.dot,
+              backgroundColor: dotColor(done),
+              border: done === 0 ? '1.5px solid var(--color-border)' : 'none',
+            }}
+            title={done > 0 ? `${done} van 7 dagen` : 'Niet bijgehouden'}
+          />
+        ))}
+      </div>
+      <span style={styles.weekDotsLegend}>● ≥5d &nbsp;● 3-4d &nbsp;● 1-2d &nbsp;○ 0d</span>
     </div>
   );
 }
@@ -159,7 +162,7 @@ export default function GrowthOverviewPage() {
 
   const maintenanceHabits = habits.filter(h => h.status === 'maintenance');
   const activeHabits      = habits.filter(h => h.status === 'active');
-  const notStartedHabits  = habits.filter(h => h.status === 'not_started');
+  const notStartedHabits  = habits.filter(h => h.status === 'not_started' || h.status === 'paused');
 
   return (
     <div style={styles.page}>
@@ -252,7 +255,7 @@ export default function GrowthOverviewPage() {
                 <span style={styles.maintenanceEmoji}>{h.emoji}</span>
                 <span style={styles.maintenanceTitle}>{h.title}</span>
                 <span style={{ ...styles.maintenanceBadge, color: 'var(--color-amber)', backgroundColor: 'var(--color-amber-soft)' }}>
-                  Binnenkort
+                  {h.status === 'paused' ? 'Gepauzeerd' : 'Binnenkort'}
                 </span>
               </div>
             ))}
@@ -410,10 +413,28 @@ const styles = {
     borderRadius: 'var(--radius-full)',
     flexShrink: 0,
   },
+  weekDotsBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    paddingLeft: 26,
+  },
+  weekDotsLabel: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: '0.07em',
+    color: 'var(--color-text-muted)',
+  },
   weekDots: {
     display: 'flex',
     gap: 5,
-    paddingLeft: 26, // uitlijnen met de titel (voorbij de emoji)
+  },
+  weekDotsLegend: {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 9,
+    color: 'var(--color-text-muted)',
+    letterSpacing: '0.04em',
   },
   dot: {
     width: 10,
