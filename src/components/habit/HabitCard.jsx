@@ -10,7 +10,8 @@ export default function HabitCard({ habit }) {
 
   const handleCheckIn = (e, status) => {
     e.stopPropagation();
-    setCheckIn(habit.id, status);
+    const next = checkIn?.status === status ? null : status;
+    setCheckIn(habit.id, next);
   };
 
   const categoryColor = `var(${meta.color})`;
@@ -66,7 +67,7 @@ export default function HabitCard({ habit }) {
       </div>
 
       {/* Feedback */}
-      {checkIn && (
+      {checkIn?.status && (
         <div style={styles.feedback}>
           {checkIn.status === 'self_done' && '⭐ Zelf gedaan — goed bezig!'}
           {checkIn.status === 'with_help' && '🤝 Hulp vragen is ook een kracht.'}
